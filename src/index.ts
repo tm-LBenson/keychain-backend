@@ -38,15 +38,13 @@ export interface UnitAmount {
   value: string;
 }
 interface Item {
-
-    id: string;
-    name: string;
-    description: string;
-    imageUrls: string[];
-    unitAmount: UnitAmount;
-    quantity: number;
-    originalPrice?: string;
-
+  id: string;
+  name: string;
+  description: string;
+  imageUrls: string[];
+  unitAmount: UnitAmount;
+  quantity: number;
+  originalPrice?: string;
 }
 
 interface OrderResponse {
@@ -88,14 +86,12 @@ const fetchProductDetails = async (productId: string) => {
 const createOrder = async (cart: Item[]): Promise<OrderResponse> => {
   const purchaseUnits = await Promise.all(
     cart.map(async (item) => {
-      console.log(item, "THIS IS THE ITEM");
       const itemDetails = await fetchProductDetails(item.id);
       return {
         amount: {
           currencyCode: itemDetails?.unitAmount.currencyCode,
           value: itemDetails?.unitAmount.value,
         },
-        quantity: item.quantity.toString(),
       };
     }),
   );
@@ -106,19 +102,24 @@ const createOrder = async (cart: Item[]): Promise<OrderResponse> => {
   };
 
   try {
-    const response = await ordersController.ordersCreate({
+    const collect = {
       body: orderRequest,
-      prefer: "return-minimal",
-    });
+    };
+
+    const { body, ...httpResponse } = await ordersController.ordersCreate(
+      collect,
+    );
 
     return {
-      jsonResponse: response.result,
-      httpStatusCode: response.statusCode,
+      jsonResponse: body,
+      httpStatusCode: httpResponse.statusCode,
     };
   } catch (error) {
     if (error instanceof ApiError) {
+      console.log(error.body);
       throw new Error(`PayPal API error: ${error.message}`);
     }
+
     throw error;
   }
 };
@@ -133,6 +134,7 @@ app.get("/api/products/:id", async (req, res) => {
       res.status(404).send("Product not found");
     }
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: error });
   }
 });
@@ -142,6 +144,7 @@ app.post("/api/orders", async (req: Request, res: Response) => {
   try {
     const cart: Item[] = req.body.cart;
     const { jsonResponse, httpStatusCode } = await createOrder(cart);
+    console.log("LAST", jsonResponse, httpStatusCode);
     res.status(httpStatusCode).json(jsonResponse);
   } catch (error) {
     console.error("Failed to create order:", error);
@@ -156,7 +159,6 @@ const captureOrder = async (orderID: string): Promise<OrderResponse> => {
   try {
     const response = await ordersController.ordersCapture({
       id: orderID,
-      prefer: "return-minimal",
     });
 
     return {
@@ -165,6 +167,7 @@ const captureOrder = async (orderID: string): Promise<OrderResponse> => {
     };
   } catch (error) {
     if (error instanceof ApiError) {
+      console.log(error.body);
       throw new Error(`PayPal API error: ${error.message}`);
     }
     throw error;
