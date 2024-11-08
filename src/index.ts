@@ -124,6 +124,10 @@ const createOrder = async (cart: Item[]): Promise<OrderResponse> => {
   }
 };
 
+app.get("/", (req, res) => {
+  res.send({ message: "Server online" });
+});
+
 app.get("/api/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
