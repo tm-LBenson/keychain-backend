@@ -45,6 +45,7 @@ interface Item {
   unitAmount: UnitAmount;
   quantity: number;
   originalPrice?: string;
+  selectedOptions?: { [key: string]: string };
 }
 
 interface OrderResponse {
