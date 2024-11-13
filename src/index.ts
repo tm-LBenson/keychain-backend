@@ -89,7 +89,8 @@ const createOrder = async (cart: Item[]): Promise<OrderResponse> => {
     cart.map(async (item) => {
       const itemDetails = await fetchProductDetails(item.id);
       return {
-        reference_id: item.id,
+        referenceId: item.id,
+
         amount: {
           currencyCode: itemDetails?.unitAmount.currencyCode,
           value: itemDetails?.unitAmount.value,
