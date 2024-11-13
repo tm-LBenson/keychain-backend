@@ -88,12 +88,13 @@ const createOrder = async (cart: Item[]): Promise<OrderResponse> => {
   const purchaseUnits = await Promise.all(
     cart.map(async (item) => {
       const itemDetails = await fetchProductDetails(item.id);
+      console.log(item.id + Object.values(item.selectedOptions || {}).join());
       return {
-        referenceId: item.id,
+        referenceId: item.id + Object.values(item.selectedOptions || {}).join(),
 
         amount: {
           currencyCode: itemDetails?.unitAmount.currencyCode,
-          value: itemDetails?.unitAmount.value,
+          value: String(itemDetails?.unitAmount.value * item.quantity),
         },
       };
     }),
@@ -150,6 +151,7 @@ app.get("/api/products/:id", async (req, res) => {
 app.post("/api/orders", async (req: Request, res: Response) => {
   try {
     const cart: Item[] = req.body.cart;
+    console.log("CART", cart, "CART");
     const { jsonResponse, httpStatusCode } = await createOrder(cart);
     console.log("LAST", jsonResponse, httpStatusCode);
     res.status(httpStatusCode).json(jsonResponse);
